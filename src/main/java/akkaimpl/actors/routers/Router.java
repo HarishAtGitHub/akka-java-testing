@@ -5,13 +5,16 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.japi.Creator;
 import akkaimpl.actors.performers.ChildActor1;
+import akkaimpl.actors.performers.ScheduledChildActor;
 import akkaimpl.state.ChildActor1State;
 import akkaimpl.messages.*;
+import akkaimpl.state.ScheduledChildActorState;
 import akkaimpl.state.State;
 
 public class Router extends AbstractActor {
     State routerState;
     ActorRef childActor1;
+    ActorRef scheduledChildActor;
 
     public Router(State routerState){
         this.routerState = routerState;
@@ -44,12 +47,22 @@ public class Router extends AbstractActor {
         createChildIfNull();
         ChildActor1Message childActor1Message = new ChildActor1Message(msg.getContent());
         this.childActor1.tell(childActor1Message, getSelf());
+        createScheduledChildIfNull();
+        StartSchedulerMessage scheduledChildActorMessage = new StartSchedulerMessage(msg.getContent() + 1000);
+        this.scheduledChildActor.tell(scheduledChildActorMessage, getSelf());
     }
 
     private void createChildIfNull() {
         if (this.childActor1 == null) {
             ChildActor1State state = new ChildActor1State(0);
             this.childActor1 = getContext().actorOf(ChildActor1.props(state), "childactor1");
+        }
+    }
+
+    private void createScheduledChildIfNull() {
+        if (this.scheduledChildActor == null) {
+            ScheduledChildActorState state = new ScheduledChildActorState(1000);
+            this.scheduledChildActor = getContext().actorOf(ScheduledChildActor.props(state), "scheduledchildactor");
         }
     }
 
