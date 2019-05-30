@@ -38,7 +38,8 @@ public class ScheduledChildActor extends AbstractActor {
 
     public void scheduleThisActor(Message message) {
         System.out.println("scheduler reached");
-        getContext().system().scheduler().scheduleOnce(Duration.ofSeconds(4), self(), new TickMessage(), getContext().system().dispatcher(), self());
+        //getContext().system().scheduler().scheduleOnce(Duration.ofSeconds(4), self(), new TickMessage(), getContext().system().dispatcher(), self());
+        getContext().system().scheduler().schedule(Duration.ZERO, Duration.ofSeconds(1), getSelf(), new TickMessage(), getContext().system().dispatcher(), getSender());
     }
 
     public void doSomething(TickMessage message) {
