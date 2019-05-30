@@ -6,25 +6,28 @@ import akka.actor.Props;
 import akka.japi.Creator;
 import akkaimpl.actors.performers.ChildActor1;
 import akkaimpl.actors.performers.ScheduledChildActor;
+import akkaimpl.messages.testhelpers.GetStateMessage;
+import akkaimpl.messages.testhelpers.StateMessage;
 import akkaimpl.state.ChildActor1State;
 import akkaimpl.messages.*;
 import akkaimpl.state.ScheduledChildActorState;
 import akkaimpl.state.State;
 
 public class Router extends AbstractActor {
-    State routerState;
+    State state;
     ActorRef childActor1;
     ActorRef scheduledChildActor;
 
     public Router(State routerState){
-        this.routerState = routerState;
+        this.state = routerState;
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(ChangeStateMessage.class, this::makeStateChange)
-                .match(CommunicateWithActorMessage.class, this::communicateWithAnotherActor).build();
+                .match(CommunicateWithActorMessage.class, this::communicateWithAnotherActor)
+                .match(GetStateMessage.class, this::handleGetState).build();
     }
 
     public static Props props(final State initialRouterState) {
@@ -38,9 +41,9 @@ public class Router extends AbstractActor {
     }
 
     private void makeStateChange(Message msg) {
-        System.out.println("old state of router " + this.routerState);
-        this.routerState.setState(msg.getContent());
-        System.out.println("new state of router " + this.routerState);
+        System.out.println("old state of router " + this.state);
+        this.state.setState(msg.getContent());
+        System.out.println("new state of router " + this.state);
     }
 
     private void communicateWithAnotherActor(Message msg) {
@@ -66,14 +69,18 @@ public class Router extends AbstractActor {
         }
     }
 
+    private void handleGetState(GetStateMessage message) {
+        getSender().tell(this.state.getState(), getSelf());
+    }
+
     @Override
     public void preStart() {
-        System.out.println("Router started with initial state " + this.routerState );
+        System.out.println("Router started with initial state " + this.state);
     }
 
     @Override
     public void postStop() {
-        System.out.println("Router stopped with final state " + this.routerState );
+        System.out.println("Router stopped with final state " + this.state);
     }
 
 }
