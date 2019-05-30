@@ -45,4 +45,14 @@ public class ScheduledChildActor extends AbstractActor {
     public void doSomething(TickMessage message) {
         System.out.println("tick received");
     }
+
+    @Override
+    public void preStart() {
+        System.out.println("ScheduledChildActor started with initial state " + this.scheduledChildActorState );
+    }
+
+    @Override
+    public void postStop() {
+        System.out.println("ScheduledChildActor stopped with final state " + this.scheduledChildActorState );
+    }
 }

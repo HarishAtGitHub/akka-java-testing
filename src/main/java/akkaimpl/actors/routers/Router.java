@@ -45,25 +45,35 @@ public class Router extends AbstractActor {
 
     private void communicateWithAnotherActor(Message msg) {
         createChildIfNull();
-        ChildActor1Message childActor1Message = new ChildActor1Message(msg.getContent());
+        ChildActor1Message childActor1Message = new ChildActor1Message(11111);
         this.childActor1.tell(childActor1Message, getSelf());
         createScheduledChildIfNull();
-        StartSchedulerMessage scheduledChildActorMessage = new StartSchedulerMessage(msg.getContent() + 1000);
+        StartSchedulerMessage scheduledChildActorMessage = new StartSchedulerMessage(0);
         this.scheduledChildActor.tell(scheduledChildActorMessage, getSelf());
     }
 
     private void createChildIfNull() {
         if (this.childActor1 == null) {
-            ChildActor1State state = new ChildActor1State(0);
+            ChildActor1State state = new ChildActor1State(1111);
             this.childActor1 = getContext().actorOf(ChildActor1.props(state), "childactor1");
         }
     }
 
     private void createScheduledChildIfNull() {
         if (this.scheduledChildActor == null) {
-            ScheduledChildActorState state = new ScheduledChildActorState(1000);
+            ScheduledChildActorState state = new ScheduledChildActorState(2222);
             this.scheduledChildActor = getContext().actorOf(ScheduledChildActor.props(state), "scheduledchildactor");
         }
+    }
+
+    @Override
+    public void preStart() {
+        System.out.println("Router started with initial state " + this.routerState );
+    }
+
+    @Override
+    public void postStop() {
+        System.out.println("Router stopped with final state " + this.routerState );
     }
 
 }

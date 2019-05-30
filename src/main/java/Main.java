@@ -3,10 +3,13 @@ import akka.actor.ActorSystem;
 import akkaimpl.actors.routers.Router;
 import akkaimpl.state.RouterState;
 import akkaimpl.messages.*;
+import java.lang.Runtime;
 
 public class Main {
     ActorSystem actorSystem;
     ActorRef router;
+
+
 
     public void execute() {
         setUpActorSystem();
@@ -17,6 +20,18 @@ public class Main {
         System.out.println("Main program called");
         Main main = new Main();
         main.execute();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                System.out.println("Properly shutting down actors before jvm exits");
+                main.actorSystem.terminate();
+                //main.router.tell(akka.actor.PoisonPill.getInstance(), ActorRef.noSender());
+                try {
+                    Thread.sleep(4000); // time for actors to do cleanup
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void startCommunication() {

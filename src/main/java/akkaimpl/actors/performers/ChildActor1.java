@@ -37,4 +37,14 @@ public class ChildActor1 extends AbstractActor {
     public void handleChildActor1Message(Message message) {
         System.out.println("message received in child actor 1 is : " + message);
     }
+
+    @Override
+    public void preStart() {
+        System.out.println("ChildActor1 started with initial state " + this.childActor1State );
+    }
+
+    @Override
+    public void postStop() {
+        System.out.println("ChildActor1 stopped with final state " + this.childActor1State );
+    }
 }
