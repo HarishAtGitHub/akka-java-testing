@@ -17,7 +17,7 @@ public class Main {
     }
 
     public static void main(String... args) {
-        System.out.println("Main program called");
+        System.out.println("Main program started");
         Main main = new Main();
         main.execute();
         Runtime.getRuntime().addShutdownHook(new Thread() {
