@@ -70,7 +70,7 @@ public class Router extends AbstractActor {
     }
 
     private void handleGetState(GetStateMessage message) {
-        getSender().tell(this.state.getState(), getSelf());
+        getSender().tell(new StateMessage(this.state), getSelf());
     }
 
     @Override
