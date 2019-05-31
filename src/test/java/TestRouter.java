@@ -1,10 +1,13 @@
 import akka.actor.*;
 import akka.testkit.EventFilter;
 import akka.testkit.TestActorRef;
+import akkaimpl.actors.performers.ChildActor1;
+import akkaimpl.actors.performers.ScheduledChildActor;
 import akkaimpl.factories.ActorRefCreatorFactory;
 import akkaimpl.messages.ChangeStateMessage;
 import akkaimpl.messages.ChildActor1Message;
 import akkaimpl.messages.CommunicateWithActorMessage;
+import akkaimpl.messages.StartSchedulerMessage;
 import akkaimpl.messages.testhelpers.GetStateMessage;
 import akkaimpl.messages.testhelpers.StateMessage;
 import akkaimpl.state.RouterState;
@@ -62,12 +65,20 @@ public class TestRouter {
 
     @Test
     public void testActorCommunicationMultiThreaded(@Capturing final Logger LOGGER) throws InterruptedException {
-        final TestKit testKit = new TestKit(system);
+        final TestKit childActor1 = new TestKit(system);
+        final TestKit scheduledChildActor = new TestKit(system);
+        final TestKit genericActor = new TestKit(system);
         new Expectations() {{
             new MockUp<ActorRefCreatorFactory>() {
                 @Mock
                 public ActorRef createActor(ActorContext context, final Class<? extends AbstractActor> actorClass, Object... args) {
-                    return testKit.testActor();
+                    if (actorClass == ChildActor1.class) {
+                        return childActor1.testActor();
+                    } else if (actorClass == ScheduledChildActor.class) {
+                        return scheduledChildActor.testActor();
+                    } else {
+                        return genericActor.testActor();
+                    }
                 }
             };
         }};
@@ -76,7 +87,8 @@ public class TestRouter {
             ActorRefCreatorFactory factory = new ActorRefCreatorFactory();
             ActorRef router = system.actorOf(Router.props(routerInitialState, factory), "router");
             router.tell(new CommunicateWithActorMessage(4), router);
-            testKit.expectMsg(new ChildActor1Message(11111));
+            childActor1.expectMsg(new ChildActor1Message(11111));
+            scheduledChildActor.expectMsg(new StartSchedulerMessage(0));
         }};
     }
 
