@@ -73,6 +73,10 @@ public class Router extends AbstractActor {
         getSender().tell(new StateMessage(this.state), getSelf());
     }
 
+    public State getState() {
+        return this.state;
+    }
+
     @Override
     public void preStart() {
         System.out.println("Router started with initial state " + this.state);
