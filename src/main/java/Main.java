@@ -1,6 +1,6 @@
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
+import akka.actor.*;
 import akkaimpl.actors.routers.Router;
+import akkaimpl.factories.ActorRefCreatorFactory;
 import akkaimpl.state.RouterState;
 import akkaimpl.messages.*;
 import java.lang.Runtime;
@@ -8,8 +8,6 @@ import java.lang.Runtime;
 public class Main {
     ActorSystem actorSystem;
     ActorRef router;
-
-
 
     public void execute() {
         setUpActorSystem();
@@ -45,6 +43,6 @@ public class Main {
     public void setUpActorSystem() {
         this.actorSystem = ActorSystem.create("actortestsample");
         RouterState routerInitialState = new RouterState(0);
-        this.router = actorSystem.actorOf(Router.props(routerInitialState), "router");
+        this.router = actorSystem.actorOf(Router.props(routerInitialState, new ActorRefCreatorFactory()), "router");
     }
 }

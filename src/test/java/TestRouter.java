@@ -1,20 +1,17 @@
-import akka.actor.Actor;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.JavaTestKit;
+import akka.actor.*;
 import akka.testkit.TestActorRef;
-import akka.testkit.TestProbe;
-import akkaimpl.actors.performers.ChildActor1;
+import akkaimpl.factories.ActorRefCreatorFactory;
 import akkaimpl.messages.ChangeStateMessage;
+import akkaimpl.messages.ChildActor1Message;
 import akkaimpl.messages.CommunicateWithActorMessage;
 import akkaimpl.messages.testhelpers.GetStateMessage;
 import akkaimpl.messages.testhelpers.StateMessage;
 import akkaimpl.state.RouterState;
 import akkaimpl.state.State;
-import javafx.util.Duration;
+import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import mockit.*;
 import akka.testkit.TestKit;
 import akkaimpl.actors.routers.Router;
 import static org.junit.Assert.*;
@@ -33,7 +30,8 @@ public class TestRouter {
     public void testStateChangeSingleThreaded() {
         new TestKit(system) {{
             RouterState routerInitialState = new RouterState(0);
-            final Props props = Props.create(Router.class, routerInitialState);
+            ActorRefCreatorFactory factory = new ActorRefCreatorFactory();
+            final Props props = Props.create(Router.class, routerInitialState, factory);
             final TestActorRef<Router> testActorRef = TestActorRef.create(system,
                     props, "Router");
 
@@ -50,10 +48,43 @@ public class TestRouter {
             RouterState routerInitialState = new RouterState(0);
             // use TestKit as it is multi threaded test.
             final TestKit testKit = new TestKit(system);
-            ActorRef router = system.actorOf(Router.props(routerInitialState), "router");
+            ActorRefCreatorFactory factory = new ActorRefCreatorFactory();
+            ActorRef router = system.actorOf(Router.props(routerInitialState, factory), "router");
             router.tell(new ChangeStateMessage(4), router);
             router.tell(new GetStateMessage(), testKit.testActor());
             testKit.expectMsg(new StateMessage(new State(4)));
         }};
     }
+
+    @Test
+    public void testActorCommunicationMultiThreaded(@Capturing final Logger LOGGER) throws InterruptedException {
+        final TestKit testKit = new TestKit(system);
+        new Expectations() {{
+            new MockUp<ActorRefCreatorFactory>() {
+                @Mock
+                public ActorRef createActor(ActorContext context, final Class<? extends AbstractActor> actorClass, Object... args) {
+                    return testKit.testActor();
+                }
+            };
+        }};
+        new TestKit(system) {{
+            RouterState routerInitialState = new RouterState(0);
+            // use TestKit as it is multi threaded test.
+
+            ActorRefCreatorFactory factory = new ActorRefCreatorFactory();
+            ActorRef router = system.actorOf(Router.props(routerInitialState, factory), "router");
+            router.tell(new CommunicateWithActorMessage(4), router);
+            testKit.expectMsg(new ChildActor1Message(11111));
+        }};
+    }
+
+    /*@Test
+    public void testSumma(@Capturing final Logger LOGGER) throws InterruptedException {
+        new Expectations() {{
+            LOGGER.error("error");
+        }};
+
+        Summa s = new Summa();
+        s.logsomething();
+    }*/
 }
