@@ -1,4 +1,5 @@
 import akka.actor.*;
+import akka.testkit.EventFilter;
 import akka.testkit.TestActorRef;
 import akkaimpl.factories.ActorRefCreatorFactory;
 import akkaimpl.messages.ChangeStateMessage;
@@ -8,12 +9,15 @@ import akkaimpl.messages.testhelpers.GetStateMessage;
 import akkaimpl.messages.testhelpers.StateMessage;
 import akkaimpl.state.RouterState;
 import akkaimpl.state.State;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import mockit.*;
 import akka.testkit.TestKit;
 import akkaimpl.actors.routers.Router;
+
 import static org.junit.Assert.*;
 
 public class TestRouter {
@@ -69,8 +73,6 @@ public class TestRouter {
         }};
         new TestKit(system) {{
             RouterState routerInitialState = new RouterState(0);
-            // use TestKit as it is multi threaded test.
-
             ActorRefCreatorFactory factory = new ActorRefCreatorFactory();
             ActorRef router = system.actorOf(Router.props(routerInitialState, factory), "router");
             router.tell(new CommunicateWithActorMessage(4), router);
@@ -78,13 +80,21 @@ public class TestRouter {
         }};
     }
 
-    /*@Test
-    public void testSumma(@Capturing final Logger LOGGER) throws InterruptedException {
-        new Expectations() {{
-            LOGGER.error("error");
-        }};
+    @Test
+    public void testLogEvent() throws InterruptedException {
+        Config akkaConfig = ConfigFactory.parseString("akka.loggers = [akka.testkit.TestEventListener]");
+        final ActorSystem system = ActorSystem.create("localactorsystem", akkaConfig);
+        final TestKit testKit = new TestKit(system);
+        new TestKit(system) {{
+            RouterState routerInitialState = new RouterState(0);
+            // use TestKit as it is multi threaded test.
 
-        Summa s = new Summa();
-        s.logsomething();
-    }*/
+            ActorRefCreatorFactory factory = new ActorRefCreatorFactory();
+            ActorRef router = system.actorOf(Router.props(routerInitialState, factory), "router");
+            router.tell(new CommunicateWithActorMessage(4), router);
+            boolean receivedLogMsg = EventFilter.info("sending message to childActor1", null, null,
+                    null, 1).intercept(()-> { return true; }, system);
+            assertTrue(receivedLogMsg);
+        }};
+    }
 }

@@ -59,7 +59,7 @@ public class Router extends AbstractActor {
     private void communicateWithAnotherActor(Message msg) {
         createChildIfNull();
         ChildActor1Message childActor1Message = new ChildActor1Message(11111);
-        LOGGER.error("sending message to childActor1");
+        LOGGER.info("sending message to childActor1");
         this.childActor1.tell(childActor1Message, getSelf());
         createScheduledChildIfNull();
         StartSchedulerMessage scheduledChildActorMessage = new StartSchedulerMessage(0);
