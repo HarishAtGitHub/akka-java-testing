@@ -57,29 +57,29 @@ public class Router extends AbstractActor {
     }
 
     private void communicateWithAnotherActor(Message msg) {
-        createChildIfNull();
+        ActorRef childActor1 = createChildIfNull();
         ChildActor1Message childActor1Message = new ChildActor1Message(11111);
         LOGGER.info("sending message to childActor1");
-        this.childActor1.tell(childActor1Message, getSelf());
-        createScheduledChildIfNull();
+        childActor1.tell(childActor1Message, getSelf());
+        ActorRef scheduledChildActor = createScheduledChildIfNull();
         StartSchedulerMessage scheduledChildActorMessage = new StartSchedulerMessage(0);
-        this.scheduledChildActor.tell(scheduledChildActorMessage, getSelf());
+        scheduledChildActor.tell(scheduledChildActorMessage, getSelf());
     }
 
-    private void createChildIfNull() {
+    private ActorRef createChildIfNull() {
         if (this.childActor1 == null) {
-            ChildActor1State state = new ChildActor1State(1111);
-            //this.childActor1 = getContext().actorOf(ChildActor1.props(state), "childactor1");
             this.childActor1 = factory.createActor(getContext(), ChildActor1.class, state);
         }
+        return this.childActor1;
     }
 
-    private void createScheduledChildIfNull() {
+    private ActorRef createScheduledChildIfNull() {
         if (this.scheduledChildActor == null) {
             ScheduledChildActorState state = new ScheduledChildActorState(2222);
             //this.scheduledChildActor = getContext().actorOf(ScheduledChildActor.props(state), "scheduledchildactor");
             this.scheduledChildActor = factory.createActor(getContext(), ScheduledChildActor.class, state);
         }
+        return this.scheduledChildActor;
     }
 
     private void handleGetState(GetStateMessage message) {

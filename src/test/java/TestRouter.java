@@ -109,4 +109,39 @@ public class TestRouter {
             assertTrue(receivedLogMsg);
         }};
     }
+
+    /**
+     * the following approach can be used if you are lazy to do factory.
+     * so take the actor creation inside the parent actor, into a separate function
+     * and mock that function during tests like below
+     * @param LOGGER
+     * @throws InterruptedException
+     */
+    @Test
+    public void testActorByMockingInsideActorMultiThreaded(@Capturing final Logger LOGGER) throws InterruptedException {
+        final TestKit childActor1 = new TestKit(system);
+        final TestKit scheduledChildActor = new TestKit(system);
+        final TestKit genericActor = new TestKit(system);
+        new Expectations() {{
+            new MockUp<Router>() {
+                @Mock
+                public ActorRef createChildIfNull() {
+                    return childActor1.testActor();
+                }
+
+                @Mock
+                public ActorRef createScheduledChildIfNull() {
+                    return scheduledChildActor.testActor();
+                }
+            };
+        }};
+        new TestKit(system) {{
+            RouterState routerInitialState = new RouterState(0);
+            ActorRefCreatorFactory factory = new ActorRefCreatorFactory();
+            ActorRef router = system.actorOf(Router.props(routerInitialState, factory), "router");
+            router.tell(new CommunicateWithActorMessage(4), router);
+            childActor1.expectMsg(new ChildActor1Message(11111));
+            scheduledChildActor.expectMsg(new StartSchedulerMessage(0));
+        }};
+    }
 }
