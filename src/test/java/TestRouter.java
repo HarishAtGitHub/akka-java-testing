@@ -125,12 +125,12 @@ public class TestRouter {
         new Expectations() {{
             new MockUp<Router>() {
                 @Mock
-                public ActorRef createChildIfNull() {
+                private ActorRef createChildIfNull() {
                     return childActor1.testActor();
                 }
 
                 @Mock
-                public ActorRef createScheduledChildIfNull() {
+                private ActorRef createScheduledChildIfNull() {
                     return scheduledChildActor.testActor();
                 }
             };
